@@ -1,0 +1,11 @@
+# meu programa
+int x, y
+x = 8.8
+y = 0.5
+z = 7
+# vai começar o if
+if (x > y) {
+    print x
+} else {
+    print y
+}
