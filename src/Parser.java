@@ -243,24 +243,41 @@ public class Parser {
     }
 
 
-    int contadorIdent = 0;
+    boolean primeiraVezIdentificador = false;
+    boolean dentroDeCondicional = false;
 
     private Estado transitar(Estado estado, String token) {
 
         switch (estado) {
             case Q0 -> {
-                switch (token.toLowerCase()) {
+                switch (token) {
                     case "int" -> {
                         return Estado.TIPO_INT;
                     }
                     case "float" -> {
                         return Estado.TIPO_FLOAT;
                     }
-                    default -> {
-                        if (token.matches("^[a-z].*")) { // Verifica se começa com a-z
-                            contadorIdent++;
-                            return Estado.IDENT;
 
+                    case "print" -> {
+                        return Estado.INSTR_PRINT;
+                    }
+
+                    case "#" -> {
+                        return Estado.INICIO_COMENT;
+                    }
+
+                    case "if" -> {
+                        return Estado.INSTR_IF;
+                    }
+                    case "else" -> {}
+                    case "while" -> {}
+
+                    default -> {
+                        if (token.matches("^[a-zA-Z].*")) { // Verifica se começa com a-z
+                            primeiraVezIdentificador = true;
+                            return Estado.IDENT;
+                        } else if (token.equals("\n")) {
+                            return Estado.Q0;
                         }
                     }
                 }
@@ -286,16 +303,53 @@ public class Parser {
             }
 
             case IDENT -> {
-                if (contadorIdent == 1 && !token.equals("\n")) {
+                if (primeiraVezIdentificador && !token.equals("\n")) {
                     if (!token.equals("=")) {
                         return null;
+                    } else {
+                        primeiraVezIdentificador = false;
                     }
                 }
+
+
                 if (token.equals(",")) {
                     return Estado.SEPARADOR;
 
                 } else if (token.equals("=")) {
                     return Estado.ATRIBUICAO;
+
+                } else if (token.equals("+")) {
+                    return Estado.OPER_ADICAO;
+
+                } else if (token.equals("-")) {
+                    return Estado.OPER_SUBTRACAO;
+
+                } else if (token.equals("*")) {
+                    return Estado.OPER_MULTIPLICACAO;
+
+                } else if (token.equals("/")) {
+                    return Estado.OPER_DIVISAO;
+
+                } else if (dentroDeCondicional && token.equals("==")) {
+                    return Estado.OPER_IGUAL;
+
+                } else if (dentroDeCondicional && token.equals("!=")) {
+                    return Estado.OPER_DIFERENTE;
+
+                } else if (dentroDeCondicional && token.equals("<")) {
+                    return Estado.OPER_MENOR;
+
+                } else if (dentroDeCondicional && token.equals(">")) {
+                    return Estado.OPER_MAIOR;
+
+                } else if (dentroDeCondicional && token.equals("<=")) {
+                    return Estado.OPER_MENOR_IGUAL;
+
+                } else if (dentroDeCondicional && token.equals(">=")) {
+                    return Estado.OPER_MAIOR_IGUAL;
+
+                } else if (token.equals("}")) {
+                    return Estado.FECHA_CHA;
 
                 } else if (token.equals("\n")) {
                     return Estado.Q0;
@@ -311,7 +365,7 @@ public class Parser {
 
                 } else if (token.matches("^[0-9]+(\\.[0-9]+)?$")) { // numeros float
                     return Estado.NUM_REAL;
-                } else if (token.matches("^[a-z].*")) {
+                } else if (token.matches("^[a-zA-Z].*")) {
                     return Estado.IDENT;
                 }
             }
@@ -319,39 +373,102 @@ public class Parser {
             case NUM_INT, NUM_REAL -> {
                 if (token.equals("\n")) {
                     return Estado.Q0;
+                } else if (token.equals("+")) {
+                    return Estado.OPER_ADICAO;
+
+                } else if (token.equals("-")) {
+                    return Estado.OPER_SUBTRACAO;
+
+                } else if (token.equals("*")) {
+                    return Estado.OPER_MULTIPLICACAO;
+
+                } else if (token.equals("/")) {
+                    return Estado.OPER_DIVISAO;
+
+                } else if (token.equals(")")) {
+                    return Estado.FECHA_PAR;
+                } else if (token.equals("}")) {
+                    return Estado.FECHA_CHA;
+                } else {
+                    return null;
                 }
             }
 
-            case Q1 -> {
-                if (token.equals("=")) {
-                return Estado.Q2;
+            case OPER_ADICAO, OPER_SUBTRACAO, OPER_MULTIPLICACAO, OPER_DIVISAO, INSTR_PRINT, ABR_PAR, OPER_IGUAL,
+                 OPER_DIFERENTE, OPER_MENOR, OPER_MAIOR, OPER_MENOR_IGUAL, OPER_MAIOR_IGUAL-> {
+                if (token.matches("^[0-9]+$")) { // numeros int
+                    return Estado.NUM_INT;
+
+                } else if (token.matches("^[0-9]+(\\.[0-9]+)?$")) { // numeros float
+                    return Estado.NUM_REAL;
+                } else if (token.matches("^[a-zA-Z].*")) { // letras
+                    return Estado.IDENT;
+                } else if (token.equals(")")) {
+                    dentroDeCondicional = false;
+                    return Estado.FECHA_PAR;
+                }
+                else {
+                    return null;
                 }
             }
 
-            case Q2 -> {
-                if (Character.isDigit(token.charAt(0))) {  // Número
-                    return Estado.Q3;
+            case INSTR_IF -> {
+                if (token.equals("(")) {
+                    dentroDeCondicional = true;
+                    return Estado.ABR_PAR;
+                } else {
+                    return null;
                 }
             }
 
-            case Q3 -> {
-                if (token.equals(";")) {  // Final de instrução de atribuição
-                    return Estado.Q0;
+            case FECHA_PAR -> {
+                if (token.equals("{")) {
+                    return Estado.ABRE_CHA;
+                } else {
+                    return null;
+                }
+            }
+
+            case ABRE_CHA -> {
+                switch (token) {
+                    case "int" -> {
+                        return Estado.TIPO_INT;
+                    }
+                    case "float" -> {
+                        return Estado.TIPO_FLOAT;
+                    }
+
+                    case "print" -> {
+                        return Estado.INSTR_PRINT;
+                    }
+
+                    case "#" -> {
+                        return Estado.INICIO_COMENT;
+                    }
+
+                    case "if" -> {
+                        return Estado.INSTR_IF;
+                    }
+                    case "else" -> {}
+                    case "while" -> {}
+                    case "}" -> {
+                        return Estado.Q0;
+                    }
+
+                    default -> {
+                        if (token.matches("^[a-zA-Z].*")) { // Verifica se começa com a-z
+                            primeiraVezIdentificador = true;
+                            return Estado.IDENT;
+                        } else if (token.equals("\n")) {
+                            return Estado.Q0;
+                        }
+                    }
                 }
 
             }
 
-            case Q4 -> {
-                if (Character.isLetter(token.charAt(0))) {  // Identificador para print
-                    return Estado.Q5;
-                }
-
-            }
-
-            case Q5 -> {
-                if (token.equals(";")) {  // Final de instrução print
-                    return Estado.Q0;
-                }
+            case INICIO_COMENT, FECHA_CHA -> {
+                return Estado.Q0;
             }
 
             default -> {

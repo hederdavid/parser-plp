@@ -1,5 +1,4 @@
-int x, y, z
-float i, j, k
-a = z
-b = 5
-c = 4.5
+if (x > 8) {
+x = y
+print b
+}
