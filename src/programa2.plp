@@ -1,4 +1,12 @@
 if (x > 8) {
-x = y
-print b
+# meu comentario
+    if (x <= 7) {
+        print 2
+        # meu comentario
+    }
+    # meu comentario
+    x = y
+    print b
+    # meu comentario
+    }
 }

@@ -75,32 +75,15 @@ public class Parser {
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
             String linha;
-            boolean dentroDeBloco = false;  // Para rastrear se estamos dentro de um bloco { }
 
             while ((linha = bufferedReader.readLine()) != null) {
                 linha = linha.trim();
 
-                if (linha.contains("{")) {
-                    // Inicia um bloco
-                    entrada.append(linha).append(" "); // Não adiciona | ainda
-                    dentroDeBloco = true;
-                } else if (linha.contains("}")) {
-                    // Finaliza um bloco
-                    entrada.append(linha); // Adiciona a linha final do bloco
-                    entrada.append("\n"); // Agora sim pode adicionar o delimitador
-                    dentroDeBloco = false;
-                } else if (dentroDeBloco) {
-                    // Está dentro de um bloco, junta sem |
-                    entrada.append(linha).append(" ");
-                } else {
-                    // Fora de bloco, adiciona com |
-                    entrada.append(linha).append("\n");
-                }
+                entrada.append(linha).append("\n");
 
                 System.out.println(linha);  // Mantém o debug com impressão da linha
             }
             bufferedReader.close();
-            System.out.println(entrada.toString());
         } catch (IOException e) {
             System.out.println("Erro ao ler o arquivo: " + e.getMessage());
         }
@@ -271,6 +254,9 @@ public class Parser {
                     }
                     case "else" -> {}
                     case "while" -> {}
+                    case "}" -> {
+                        return Estado.FECHA_CHA;
+                    }
 
                     default -> {
                         if (token.matches("^[a-zA-Z].*")) { // Verifica se começa com a-z
