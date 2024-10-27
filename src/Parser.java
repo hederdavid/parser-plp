@@ -66,7 +66,9 @@ enum Estado {
 
 
 public class Parser {
+
     public static String proximoToken;
+
     public static void main(String[] args) {
 
 
@@ -410,7 +412,7 @@ public class Parser {
                 }
             }
 
-            case INSTR_IF -> {
+            case INSTR_IF, INSTR_WHILE -> {
                 if (token.equals("(")) {
                     dentroDeCondicional = true;
                     return Estado.ABR_PAR;
@@ -419,7 +421,7 @@ public class Parser {
                 }
             }
 
-            case FECHA_PAR, INSTR_ELSE, INSTR_WHILE -> {
+            case FECHA_PAR, INSTR_ELSE -> {
                 if (token.equals("{")) {
                     return Estado.ABRE_CHA;
                 } else {
