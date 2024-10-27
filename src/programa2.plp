@@ -1,12 +1,12 @@
-if (x > 8) {
-# meu comentario
-    if (x <= 7) {
-        print 2
-        # meu comentario
-    }
-    # meu comentario
-    x = y
-    print b
-    # meu comentario
-    }
+int x, y
+x = 8
+y = 3
+# vai começar o laço
+while (x <= y) {
+   if (x > y) {
+       print x
+   } else {
+       print y
+   }
+   x = x + 1
 }

@@ -66,7 +66,10 @@ enum Estado {
 
 
 public class Parser {
+    public static String proximoToken;
     public static void main(String[] args) {
+
+
 
         StringBuilder entrada = new StringBuilder();
 
@@ -252,10 +255,16 @@ public class Parser {
                     case "if" -> {
                         return Estado.INSTR_IF;
                     }
-                    case "else" -> {}
-                    case "while" -> {}
+                    case "else" -> {
+                        return Estado.INSTR_ELSE;
+                    }
+                    case "while" -> {
+                        return Estado.INSTR_WHILE;
+                    }
                     case "}" -> {
-                        return Estado.FECHA_CHA;
+                        if (proximoToken == null) {
+                            return Estado.Q0;
+                        }
                     }
 
                     default -> {
@@ -337,6 +346,9 @@ public class Parser {
                 } else if (token.equals("}")) {
                     return Estado.FECHA_CHA;
 
+                } else if (token.equals(")")) {
+                    return Estado.FECHA_PAR;
+
                 } else if (token.equals("\n")) {
                     return Estado.Q0;
 
@@ -407,7 +419,7 @@ public class Parser {
                 }
             }
 
-            case FECHA_PAR -> {
+            case FECHA_PAR, INSTR_ELSE, INSTR_WHILE -> {
                 if (token.equals("{")) {
                     return Estado.ABRE_CHA;
                 } else {
@@ -438,7 +450,12 @@ public class Parser {
                     case "else" -> {}
                     case "while" -> {}
                     case "}" -> {
-                        return Estado.Q0;
+                        if (proximoToken == null) {
+                            return Estado.Q0;
+                        } else if (proximoToken.equals("else")) {
+                            return Estado.INSTR_ELSE;
+                        }
+
                     }
 
                     default -> {
@@ -453,8 +470,14 @@ public class Parser {
 
             }
 
-            case INICIO_COMENT, FECHA_CHA -> {
+            case INICIO_COMENT -> {
                 return Estado.Q0;
+            }
+
+            case FECHA_CHA -> {
+                if (token.equals("else")) {
+                    return Estado.INSTR_ELSE;
+                }
             }
 
             default -> {
@@ -470,11 +493,16 @@ public class Parser {
         Estado[] estadosFinais = {Estado.Q0};	//estados finais
 
         List<String> tokens = tokenizar(entrada);
-        for (String token : tokens) {
+        for (int i = 0; i < tokens.size(); i++) {
+            String token = tokens.get(i);
+            String proximoToken = (i + 1 < tokens.size()) ? tokens.get(i + 1) : null;
             estadoAtual = transitar(estadoAtual, token);
-            if (estadoAtual == null)
+
+            if (estadoAtual == null) {
                 return false;
+            }
         }
+
 
         //se parou num estado final, o código-fonte é bem formado
         for (Estado estadoFinal : estadosFinais) {
